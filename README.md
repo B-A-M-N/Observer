@@ -15,7 +15,7 @@ Before my son can learn anything, he needs to be **regulated**. Before he can en
 
 Observer was built to solve that problem.
 
-It is the sensory nervous system for [Progeny / Bitling](docs/bitling_runtime_architecture.md) — an AI learning companion I'm building for my son. But it works as a standalone system for any family, therapist, or educator who needs a high-fidelity behavioral baseline for a neurodivergent child.
+It is the sensory nervous system for [Progeny](https://github.com/B-A-M-N/Progeny) — an AI learning companion I'm building for my son. But it works as a standalone system for any family, therapist, or educator who needs a high-fidelity behavioral baseline for a neurodivergent child.
 
 The core idea is simple: **you can't teach a child you don't understand, and you can't understand a child you haven't watched.**
 
@@ -153,7 +153,7 @@ The goal is a tool that families can trust with their most vulnerable moments �
 
 ## Part of a Larger Vision
 
-Observer is the observational layer of [Progeny](docs/bitling_runtime_architecture.md) — an AI learning companion designed specifically for neurodivergent children. Progeny uses the behavioral baseline Observer builds to power a live neuroadaptive teaching system: one that knows when to push, when to back off, and when to just sit with a kid and play.
+Observer is the observational layer of [Progeny](https://github.com/B-A-M-N/Progeny) — an AI learning companion designed specifically for neurodivergent children. Progeny uses the behavioral baseline Observer builds to power a live neuroadaptive teaching system: one that knows when to push, when to back off, and when to just sit with a kid and play.
 
 Together, they represent a single question asked seriously:
 
