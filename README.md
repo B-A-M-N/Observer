@@ -1,7 +1,7 @@
 # Observer
-### Behavioral Telemetry & Observational Reporting
+> **"Built by a father who needed to understand his son before he could teach him."**
 
-> *Built by a father who needed to understand his son before he could teach him.*
+### Behavioral Telemetry & Observational Reporting
 
 ---
 
@@ -15,7 +15,7 @@ Observer is a local-first **Behavioral Telemetry Engine** designed to build a hi
 
 ## Example Behavioral Episode
 
-This is the concrete output Observer produces after a behavioral event window is detected and analyzed:
+Observer converts chaotic moments into structured insight. Here is what the "Specialist" model sees when analyzing a detected event:
 
 ```json
 {
@@ -37,11 +37,16 @@ This is the concrete output Observer produces after a behavioral event window is
       "sensory_seeking": 0.2,
       "sensory_avoidance": 0.8,
       "processing_support_needed": 0.9
-    },
-    "emotional_profile": "Subject showing high-velocity motor patterns following a transition. Gaze stability is low, suggesting a state of sensory overload rather than focused play."
+    }
   }
 }
 ```
+
+### 🗣️ The "Human Translation"
+While the data looks clinical, the insight is deeply human. The ledger entry above tells us:
+> *"During this 45-second window, the subject wasn't 'acting out'—they were likely experiencing significant sensory overload (0.72) and were struggling to process the environment (0.9 support needed). The high-velocity movement was a regulatory tool, not a random behavior."*
+
+---
 
 ## Longitudinal Pattern Discovery
 
@@ -108,15 +113,15 @@ The system automatically captures and analyzes clips when telemetry exceeds base
 
 ---
 
-## Privacy: Wisdom, Not Data
+## Privacy & Ephemeral Capture
 
 Observer is built on a core mandate: **Wisdom, not data.**
 
-The goal is to extract structured **behavioral insight**—then delete the source footage.
-- **Vision is Local**: All video analysis happens on your machine.
+For parents of neurodivergent children, pointing a camera at their child is a massive act of trust. We honor that trust through **Ephemeral Capture**:
 
-- **The Purge**: Raw video is deleted immediately after the structured annotation is saved.
-- **Local Sovereignty**: By default, even the text-analysis happens locally on your CPU.
+1.  **Extract then Delete**: The system creates a 30-60 second "event window" to analyze a behavior. As soon as the AI extracts the behavioral insights, the raw video is deleted.
+2.  **No Long-Term Surveillance**: We do not keep "tapes." We keep a structured psychological ledger. The surveillance is temporary; the understanding is permanent.
+3.  **Local-First Sovereignty**: All vision analysis happens on your local machine. No raw video of your child ever touches the cloud.
 
 ---
 
@@ -147,8 +152,6 @@ ollama pull moondream:latest   # High-Speed Scouting
 ollama pull qwen3-vl:8b        # Forensic Deep Audit
 ollama pull rnj-1:8b           # Local Pattern Recognition
 ```
-
-*Note: For lower-end CPUs, see the cloud-assisted alternative in `vlm_utils.py`.*
 
 ---
 
