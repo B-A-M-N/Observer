@@ -1,34 +1,42 @@
-# Observer: Autonomous Behavioral & Psychological Insight Engine
+# Observer: Behavioral Telemetry & Observational Reporting
 
-Observer is a local-first, privacy-centric computer vision and audio analysis system designed to map human behavioral patterns, emotional valence, and regulatory states in real-time.
+Observer is a local-first system designed to solve a specific problem: **How do we give an AI enough context to actually understand how a specific child learns?**
 
-While originally developed as the "sensory nervous system" for the **Progeny (Bitling)** project, Observer is a standalone engine capable of high-fidelity behavioral auditing for any context requiring deep psychological insight without compromising privacy.
+Generic AI models don't understand the nuance of neurodivergent regulation, sensory triggers, or the "Deep Flow" states that precede successful learning. To build an application that truly caters to a child's needs, the AI needs more than just a prompt—it needs a high-fidelity behavioral baseline.
 
-## What Observer Does
+## The Problem
 
-Observer transforms raw video and audio into a structured psychological map by combining real-time telemetry with Large Vision-Language Models (VLMs).
+Most educational tools focus on *performance* (did they get the answer right?). They ignore the *prerequisites* for learning:
+- **Regulation:** Is the child calm enough to process information?
+- **Engagement:** Are they in a state of monotropic flow or hyper-vigilant distraction?
+- **Sensory Context:** Was a "failed" lesson actually caused by a loud noise or a difficult transition?
 
-### 1. High-Fidelity Signal Tracking
-- **Motor Regulation Mapping:** Uses MediaPipe Pose tracking and FFT frequency analysis to distinguish between purposeful movement and repetitive regulatory patterns (stimming).
-- **Vocal Contextualization:** Monitors speech-to-text streams to identify echolalia, scripting, and vocal intensity shifts.
-- **Subject Intelligence:** Automatically distinguishes between subjects (e.g., Child vs. Adult) to apply context-specific analysis logic.
+Observer was built to bridge this gap by converting raw lived behavior into a structured "Behavioral State Ledger" that can eventually inform better teaching strategies.
 
-### 2. Automated Forensic Editing
-The system doesn't just record; it edits.
-- **Trigger-Based Slicing:** When a behavioral or vocal event is detected, the system automatically preserves the **30 seconds before and 30 seconds after** the trigger.
-- **Context Preservation:** This ensure the "Antecedent" (the trigger) and the "Resolution" are captured with full video and audio fidelity.
-- **The Highlight Reel:** Multiple events are stitched into a single, high-density clip for AI annotation.
+## How it Works
 
-### 3. Psychological & Emotional Annotation
-Observer uses optimized VLMs (like Moondream and Qwen-VL) to perform a "Deep Audit" of captured events:
-- **Emotional Valence:** Maps states from Regulatory/Joyful to Dysregulation/Distress.
-- **Engagement Quality:** Distinguishes between "Deep Flow" (Monotropism) and Hyper-vigilance.
-- **Regulatory Function:** Identifies the *purpose* of behaviors (Sensory Seeking, Sensory Avoidance, or Processing).
+Observer acts as a high-fidelity "nervous system" that monitors and documents behavioral episodes without sacrificing privacy.
 
-### 4. Privacy-First Architecture (The Purge)
-Observer is built on a "Wisdom, not Data" philosophy:
-- **Immediate Purge:** Raw video files and trimmed clips are **deleted permanently** as soon as the AI completes its text-based annotation.
-- **Local-Only:** No data ever leaves the local machine. The system saves only the "wisdom"—the psychological report—to the local database.
+### 1. Hard Telemetry (Measured Features)
+The system tracks concrete physical data in real-time to remove guesswork:
+- **Motor Rhythm:** Uses MediaPipe Pose tracking to distinguish purposeful movement from repetitive regulatory patterns (stimming).
+- **Vocal Intensity:** Streams raw audio volume and identifies scripting/echolalia patterns.
+- **Latency:** Documentation of how long it takes to respond to prompts or transitions.
+
+### 2. Psychological Mapping (Inferred States)
+Using lightweight Vision-Language Models (VLMs), Observer performs a "Deep Audit" of behavioral events:
+- **Affective Inference:** Likelihood of Joy, Distress, or Overload.
+- **Regulatory Function:** Identifying if a behavior is Sensory Seeking, Sensory Avoidance, or simple Information Processing.
+- **Engagement Quality:** Mapping the quality of focus (e.g., Deep Flow vs. Scattered).
+
+### 3. Automated Forensic Editing
+To maintain fidelity while respecting privacy, the system:
+- Records raw video only during active windows.
+- Automatically trims clips to **30 seconds before and after** a detected behavioral trigger.
+- **The Purge:** Deletes all raw video files immediately after the text-based structured annotation is saved to the local database.
+
+### 4. Longitudinal Synthesis
+Accumulated episodes can be compiled into a "Meta-Analysis" that identifies trends over days and weeks. This provides a map of what helps *this specific child* stay regulated and engaged.
 
 ---
 
@@ -36,21 +44,18 @@ Observer is built on a "Wisdom, not Data" philosophy:
 
 ### Prerequisites
 - Python 3.10+
-- [Ollama](https://ollama.com/) installed and running.
-- **Required Models (CPU-Optimized):**
+- [Ollama](https://ollama.com/)
+- **CPU-Optimized Models:**
   ```bash
   ollama pull moondream:latest
   ollama pull qwen2.5:0.5b
   ```
 
 ### Quick Start
-1. **Initialize Engine:** Run `python3 main.py`.
-2. **Access Interface:** Navigate to `http://localhost:8001/?token=test_token`.
-3. **Monitor:** The system follows its internal scheduler to begin autonomous observation windows.
-4. **Compile:** Use the "Compile Comprehensive Report" button to synthesize all accumulated segments into a master daily profile.
+1. **Launch:** `python3 main.py`
+2. **Access:** `http://localhost:8001/?token=test_token`
+3. **Observation:** The system follows its internal scheduler (Tue-Sun) to start monitoring windows.
+4. **Compile:** Use the UI to generate a consolidated longitudinal report from accumulated episodes.
 
-## Broad Applications
-Beyond its core use in neurodivergent-affirming education (Progeny), Observer can be applied to:
-- **Developmental Research:** Mapping cognitive profiles over long periods.
-- **Therapeutic Baseline Building:** Providing objective, high-fidelity data for clinicians.
-- **Self-Reflective Tools:** Helping individuals understand their own sensory and emotional triggers.
+## Privacy Stance
+Observer is built on the principle of **"Wisdom, not Data."** No video or audio is stored long-term. Only the structured psychological insights survive the purge, and all analysis is performed locally on your own machine.
