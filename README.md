@@ -161,4 +161,10 @@ Together, they represent a single question asked seriously:
 
 ---
 
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 *Built with love, necessity, and too many late nights.*
