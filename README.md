@@ -9,6 +9,8 @@
 
 Observer is a local-first **Behavioral Telemetry Engine** designed to build a high-fidelity baseline for neurodivergent learners. It converts raw video and audio into **structured behavioral episodes** stored in a **Behavioral State Ledger**—a time-ordered database that allows regulatory patterns to emerge across days and weeks.
 
+> **⚠️ Early-Alpha Status:** This project is in active development. The web interface, server, camera monitoring, and longitudinal reporting are functional. Clip trimming and dynamic event isolation are implemented but should be considered experimental. Granular behavioral thresholds and AI interpretation logic will require refinement before the system is considered production-ready.
+
 > **Note on Use:** Observer is a context-building tool for families and specialists. It does **not** diagnose medical conditions, assign clinical labels, or replace professional psychiatric assessment.
 
 ---
