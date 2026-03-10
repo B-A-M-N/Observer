@@ -121,12 +121,15 @@ This matters especially for neurodivergent children, who are already over-observ
 ### Models
 
 ```bash
+# Local Vision Models (100% Private)
 ollama pull moondream:latest
 ollama pull qwen3-vl:8b
+
+# Meta-Analysis Model (Cloud-Assisted)
 ollama pull rnj-1:8b-cloud
 ```
 
-Both are CPU-optimized. This runs on normal hardware. No cloud required.
+**Note on Privacy:** While the Vision models (`moondream`, `qwen3-vl`) run entirely on your local CPU, the `rnj-1:8b-cloud` model utilizes Ollama's cloud inference. If your use case requires a **100% air-gapped system**, you can swap the text model to a local one (like `llama3:8b`) in `vlm_utils.py`.
 
 ### Quick Start
 
@@ -161,7 +164,11 @@ As the developer and a parent using this daily, I can help with:
 
 ## Privacy Stance
 
-Observer is **local-first by design**. All analysis runs on your machine. No video or audio is stored long-term. Only structured psychological insights survive the purge.
+Observer is **local-first by design**. 
+
+1. **Vision is Local**: All video analysis (the most sensitive data) happens on your machine. No raw video ever leaves your hardware.
+2. **The Purge**: Raw video is destroyed immediately after analysis.
+3. **Cloud Transparency**: We currently use `rnj-1:8b-cloud` for the final text-based meta-analysis to keep the system responsive on lower-end CPUs. While Ollama states they do not log these requests, users requiring absolute local sovereignty should switch to a local text model (like `llama3:8b`) as described in the Models section.
 
 The goal is a tool that families can trust with their most vulnerable moments — and that means building it as if surveillance is the enemy, not the product.
 
