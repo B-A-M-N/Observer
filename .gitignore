@@ -1,0 +1,13 @@
+progeny_knowledge.db
+raw_segments/
+profiles/
+observer.log
+observer_test.log
+proof_test.py
+test_observer.py
+__pycache__/
+.gemini/
+.env
+*.mp4
+*.jpg
+*.jpeg

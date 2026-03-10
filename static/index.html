@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Observer - Progeny Baseline</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --accent: #38bdf8;
+            --text: #f8fafc;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        header { padding: 2rem; text-align: center; }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 1.5rem;
+            width: 95%;
+            max-width: 1400px;
+        }
+        .video-card {
+            background: var(--card);
+            padding: 1rem;
+            border-radius: 12px;
+            position: relative;
+        }
+        video { width: 100%; border-radius: 8px; transform: scaleX(-1); border: 2px solid #334155; }
+        .status-overlay {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            background: rgba(0,0,0,0.6);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent);
+        }
+        .status-recording { border-left-color: var(--danger) !important; animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .status-value { font-weight: bold; color: var(--accent); }
+        .controls { margin-top: 1rem; display: flex; gap: 1rem; justify-content: center; }
+        button { padding: 0.75rem 1.5rem; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
+        .btn-start { background-color: var(--success); color: white; }
+        .btn-compile { background-color: var(--accent); color: white; }
+        .log-card { background: var(--card); padding: 1rem; border-radius: 12px; height: 600px; display: flex; flex-direction: column; }
+        #log { flex-grow: 1; overflow-y: auto; font-family: monospace; font-size: 0.85rem; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 4px; }
+        .log-entry { margin-bottom: 0.5rem; border-bottom: 1px solid #334155; padding-bottom: 0.25rem; }
+        .timestamp { color: var(--accent); }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Observer</h1>
+        <p>Autonomous Behavioral Synthesis</p>
+    </header>
+
+    <div class="container">
+        <div class="video-card">
+            <video id="webcam" autoplay playsinline muted></video>
+            <div id="statusOverlay" class="status-overlay">
+                <div class="status-item">System: <span id="statSystem" class="status-value">Connecting...</span></div>
+                <div class="status-item">Subject: <span id="statSubject" class="status-value">Detecting...</span></div>
+                <div class="status-item">Recording: <span id="statRec" class="status-value">Idle</span></div>
+            </div>
+            <div class="controls">
+                <button id="startBtn" class="btn-start">Start Monitoring</button>
+                <button id="compileBtn" class="btn-compile">Compile Comprehensive Report</button>
+            </div>
+        </div>
+        <div class="log-card">
+            <h3>Accumulated Activity</h3>
+            <div id="log"></div>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('webcam');
+        const startBtn = document.getElementById('startBtn');
+        const compileBtn = document.getElementById('compileBtn');
+        const log = document.getElementById('log');
+        const statSystem = document.getElementById('statSystem');
+        const statSubject = document.getElementById('statSubject');
+        const statRec = document.getElementById('statRec');
+        const overlay = document.getElementById('statusOverlay');
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+
+        let ws;
+        let analysisInterval;
+
+        async function initCamera() {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            video.srcObject = stream;
+            if ('webkitSpeechRecognition' in window) {
+                const recognition = new webkitSpeechRecognition();
+                recognition.continuous = true;
+                recognition.onresult = (e) => {
+                    const text = e.results[e.results.length-1][0].transcript;
+                    if (ws) ws.send(JSON.stringify({ type: 'speech', text: text }));
+                };
+                recognition.start();
+            }
+        }
+
+        function appendLog(msg) {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<span class="timestamp">[${new Date().toLocaleTimeString()}]</span> ${msg}`;
+            log.prepend(entry);
+        }
+
+        startBtn.onclick = () => {
+            startBtn.disabled = true;
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${protocol}//${window.location.host}/ws?token=${token}`);
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === 'Analysis') {
+                    const stats = data.data;
+                    statSystem.innerText = stats.state;
+                    statSubject.innerText = stats.subject || 'Detecting...';
+                    statRec.innerText = stats.recording ? 'ACTIVE' : 'Idle';
+                    if (stats.recording) overlay.classList.add('status-recording');
+                    else overlay.classList.remove('status-recording');
+                }
+            };
+
+            const canvas = document.createElement('canvas');
+            analysisInterval = setInterval(() => {
+                if (ws.readyState === WebSocket.OPEN) {
+                    canvas.width = video.videoWidth / 2;
+                    canvas.height = video.videoHeight / 2;
+                    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                    ws.send(JSON.stringify({ type: 'frame', data: canvas.toDataURL('image/jpeg', 0.5) }));
+                }
+            }, 50);
+        };
+
+        compileBtn.onclick = async () => {
+            appendLog("Compiling comprehensive report...");
+            const res = await fetch('/compile-report');
+            const data = await res.json();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Comprehensive_Profile_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            appendLog("Report ready for download.");
+        };
+
+        initCamera();
+    </script>
+</body>
+</html>
