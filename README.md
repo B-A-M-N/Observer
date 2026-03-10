@@ -1,104 +1,163 @@
-# Observer: Behavioral Telemetry & Observational Reporting
+# Observer
+### Behavioral Telemetry & Observational Reporting
 
-Observer is a local-first system designed to solve a specific problem: **How do we give an AI enough context to actually understand how a specific child learns?**
-
-Generic AI models don't understand the nuance of neurodivergent regulation, sensory triggers, or the "Deep Flow" states that precede successful learning. To build an application that truly caters to a child's needs, the AI needs more than just a prompt—it needs a high-fidelity behavioral baseline.
-
-## The Problem
-
-Most educational tools focus on *performance* (did they get the answer right?). They ignore the *prerequisites* for learning:
-- **Regulation:** Is the child calm enough to process information?
-- **Engagement:** Are they in a state of monotropic flow or hyper-vigilant distraction?
-- **Sensory Context:** Was a "failed" lesson actually caused by a loud noise or a difficult transition?
-
-Observer was built to bridge this gap by converting raw lived behavior into a structured "Behavioral State Ledger" that can eventually inform better teaching strategies.
+> *Built by a father who needed to understand his son before he could teach him.*
 
 ---
 
-## Core System Loop
+## Why This Exists
 
-Observer acts as the "sensory nervous system" that feeds into a larger developmental loop:
+Most educational AI starts with content. Lesson plans. Curriculum. Correct answers.
+
+This one starts somewhere else.
+
+Before my son can learn anything, he needs to be **regulated**. Before he can engage, he needs to feel **safe**. Before any tool can help him, it has to *understand him* — not the average autistic child, not a clinical profile, not a dataset. Him. Specifically him. On this day. In this moment.
+
+Observer was built to solve that problem.
+
+It is the sensory nervous system for [Progeny / Bitling](docs/bitling_runtime_architecture.md) — an AI learning companion I'm building for my son. But it works as a standalone system for any family, therapist, or educator who needs a high-fidelity behavioral baseline for a neurodivergent child.
+
+The core idea is simple: **you can't teach a child you don't understand, and you can't understand a child you haven't watched.**
+
+---
+
+## The Problem With Every Other Tool
+
+Most educational software tracks *performance*. Did they get the answer right? How many problems completed? Time on task?
+
+These metrics are useless — sometimes actively harmful — if you never ask the prerequisites:
+
+- Is the child **regulated** enough to process new information?
+- Are they in a state of **monotropic flow**, or are they in survival mode?
+- Was that "failed" lesson actually caused by a loud noise, a difficult transition, or a scratchy sock?
+
+Observer was built to bridge the gap between *what happened* and *why it happened* — converting raw lived behavior into a structured **Behavioral State Ledger** that makes teaching strategies smarter over time.
+
+---
+
+## How It Works
+
+### The Core Loop
 
 ```
 Interaction / Observation
         ↓
 Signals collected
-(latency, motor patterns, volume shift, repetition)
+(latency, motor patterns, vocal volume, repetition)
         ↓
 State estimation
 (regulation + engagement + comprehension)
         ↓
-Intervention Selection
+Intervention selection
 (explore / practice / stabilize / recover)
         ↓
-Contextual Synthesis
+Contextual synthesis
 (environmental triggers + emotional valence)
         ↓
-Longitudinal Map Update
+Longitudinal map update
 ```
+
+### 1. Hard Telemetry — What Can Be Measured
+Observer tracks concrete physical data in real time to remove guesswork:
+
+- **Motor Rhythm** — MediaPipe Pose tracking distinguishes purposeful movement from repetitive regulatory patterns (stimming)
+- **Vocal Intensity** — Raw audio volume streaming, with detection of scripting and echolalia patterns
+- **Latency** — Response time to prompts and transitions, one of the most reliable regulation signals available
+
+### 2. Psychological Mapping — What Can Be Inferred
+Using lightweight Vision-Language Models (VLMs), Observer performs a "Deep Audit" of behavioral events:
+
+- **Affective Inference** — Estimated likelihood of Joy, Distress, or Overload
+- **Regulatory Function** — Is this behavior Sensory Seeking, Sensory Avoidance, or Information Processing?
+- **Engagement Quality** — Deep Flow vs. Scattered vs. Shutdown
+
+### 3. The Regulation Model
+Unlike systems optimized for performance, Observer's data model is built around the reality of neurodivergent learning cycles:
+
+| Phase | States |
+|-------|--------|
+| Active Learning | `explore` · `engage` · `advance` |
+| Consolidation | `practice` · `stabilize` |
+| Recovery | `repair` · `recover` · `rest` |
+| Connection | `co_play` |
+
+### 4. Trust Staging
+Learning is impossible without safety. Observer tracks progression through foundational trust stages, because **trust is not a nice-to-have — it is the infrastructure**:
+
+`safety` → `familiarity` → `rapport` → `collaboration` → `attachment`
+
+### 5. Automated Forensic Editing
+Observer records only what matters and destroys the rest:
+
+- Raw video captured only during active observation windows
+- Clips automatically trimmed to **30 seconds before and after** each detected behavioral trigger
+- **The Purge**: all raw video deleted immediately after structured annotation is saved to the local database
+
+### 6. Longitudinal Synthesis
+Accumulated episodes compile into a Meta-Analysis — a living map of what helps *this specific child* stay regulated, what destabilizes them, and what restores them. Patterns invisible in any single session become clear over days and weeks.
 
 ---
 
 ## Architectural Philosophy
 
-### The Regulation Model
-Unlike systems that optimize for performance, Observer's data model optimizes for **regulation, persistence, and recovery**. This captures the reality of neurodivergent learning cycles:
-- `explore` / `engage` / `advance`
-- `practice` / `stabilize`
-- `repair` / `recover` / `rest`
-- `co_play`
+Observer is built on a core belief: **wisdom, not data**.
 
-### Trust Stages
-Learning is impossible without safety. The system is designed to track progression through these foundational trust stages:
-1. `safety`
-2. `familiarity`
-3. `rapport`
-4. `collaboration`
-5. `attachment`
+The goal is never to accumulate footage. It is never to build a surveillance profile. The goal is to extract structured psychological insight from behavior — then destroy the raw evidence.
+
+Everything processed locally. Nothing stored long-term. The only thing that survives the purge is understanding.
+
+This matters especially for neurodivergent children, who are already over-observed, over-assessed, and chronically reduced to clinical checklists. Observer exists to build a picture that *serves the child* — not a system, not an institution, not a dataset.
 
 ---
 
-## How it Works
-
-### 1. Hard Telemetry (Measured Features)
-The system tracks concrete physical data in real-time to remove guesswork:
-- **Motor Rhythm:** Uses MediaPipe Pose tracking to distinguish purposeful movement from repetitive regulatory patterns (stimming).
-- **Vocal Intensity:** Streams raw audio volume and identifies scripting/echolalia patterns.
-- **Latency:** Documentation of how long it takes to respond to prompts or transitions.
-
-### 2. Psychological Mapping (Inferred States)
-Using lightweight Vision-Language Models (VLMs), Observer performs a "Deep Audit" of behavioral events:
-- **Affective Inference:** Likelihood of Joy, Distress, or Overload.
-- **Regulatory Function:** Identifying if a behavior is Sensory Seeking, Sensory Avoidance, or simple Information Processing.
-- **Engagement Quality:** Mapping the quality of focus (e.g., Deep Flow vs. Scattered).
-
-### 3. Automated Forensic Editing
-To maintain fidelity while respecting privacy, the system:
-- Records raw video only during active windows.
-- Automatically trims clips to **30 seconds before and after** a detected behavioral trigger.
-- **The Purge:** Deletes all raw video files immediately after the text-based structured annotation is saved to the local database.
-
-### 4. Longitudinal Synthesis
-Accumulated episodes can be compiled into a "Meta-Analysis" that identifies trends over days and weeks. This provides a map of what helps *this specific child* stay regulated and engaged.
-
----
-
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
+
 - Python 3.10+
 - [Ollama](https://ollama.com/)
-- **CPU-Optimized Models:**
-  ```bash
-  ollama pull moondream:latest
-  ollama pull qwen2.5:0.5b
-  ```
+
+### Models
+
+```bash
+ollama pull moondream:latest
+ollama pull qwen2.5:0.5b
+```
+
+Both are CPU-optimized. This runs on normal hardware. No cloud required.
 
 ### Quick Start
-1. **Launch:** `python3 main.py`
-2. **Access:** `http://localhost:8001/?token=test_token`
-3. **Observation:** The system follows its internal scheduler (Tue-Sun) to start monitoring windows.
-4. **Compile:** Use the UI to generate a consolidated longitudinal report from accumulated episodes.
+
+```bash
+# Launch
+python3 main.py
+
+# Access
+http://localhost:8001/?token=test_token
+```
+
+The system follows an internal observation scheduler (Tue–Sun) to manage monitoring windows automatically.
+
+Use the UI to compile a consolidated longitudinal report from accumulated episodes.
+
+---
 
 ## Privacy Stance
-Observer is built on the principle of **"Wisdom, not Data."** No video or audio is stored long-term. Only the structured psychological insights survive the purge, and all analysis is performed locally on your own machine.
+
+Observer is **local-first by design**. All analysis runs on your machine. No video or audio is stored long-term. Only structured psychological insights survive the purge.
+
+The goal is a tool that families can trust with their most vulnerable moments — and that means building it as if surveillance is the enemy, not the product.
+
+---
+
+## Part of a Larger Vision
+
+Observer is the observational layer of [Progeny](docs/bitling_runtime_architecture.md) — an AI learning companion designed specifically for neurodivergent children. Progeny uses the behavioral baseline Observer builds to power a live neuroadaptive teaching system: one that knows when to push, when to back off, and when to just sit with a kid and play.
+
+Together, they represent a single question asked seriously:
+
+**What if AI actually met a child where they are?**
+
+---
+
+*Built with love, necessity, and too many late nights.*
