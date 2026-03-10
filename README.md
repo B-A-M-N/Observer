@@ -21,21 +21,23 @@ The core idea is simple: **you can't teach a child you don't understand, and you
 
 ---
 
-## The Problem With Every Other Tool
+## The Challenge: Performance vs. Regulation
 
-Most educational software tracks *performance*. Did they get the answer right? How many problems completed? Time on task?
+Most educational software is designed to track *performance*: Did they get the answer right? How many problems were completed? What was the time on task?
 
-These metrics are useless — sometimes actively harmful — if you never ask the prerequisites:
+While these metrics have their place in traditional data collection, they are often **context-blind** when applied to neurodivergent learners. A "failed" lesson or a "lack of focus" is rarely a matter of ability; it is often a signal of a deeper regulatory struggle. To truly support a child, we have to look past the *what* and understand the *why*:
 
 - Is the child **regulated** enough to process new information?
-- Are they in a state of **monotropic flow**, or are they in survival mode?
-- Was that "failed" lesson actually caused by a loud noise, a difficult transition, or a scratchy sock?
+- Are they in a state of **monotropic flow**, or are they in a state of sensory survival?
+- Was a specific challenge caused by a difficult transition, an environmental trigger, or a need for processing support?
 
-Observer was built to bridge the gap between *what happened* and *why it happened* — converting raw lived behavior into a structured **Behavioral State Ledger** that makes teaching strategies smarter over time.
+Observer exists to bridge this gap—adding a layer of **regulatory context** to existing educational data. By converting raw behavior into a structured **Behavioral State Ledger**, we can help families and specialists refine their strategies based on the child's actual internal state, not just their external performance.
 
 ---
 
 ## How It Works
+
+![System Architecture Placeholder](https://via.placeholder.com/800x200?text=Observer+System+Architecture+Diagram)
 
 ### The Core Loop
 
@@ -118,6 +120,19 @@ This matters especially for neurodivergent children, who are already over-observ
 - Python 3.10+
 - [Ollama](https://ollama.com/)
 
+### Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/B-A-M-N/Observer.git
+   cd Observer
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
 ### Models
 
 ```bash
@@ -139,17 +154,18 @@ If you are running on a very low-end computer and find that report generation is
 
 ### Quick Start
 
-```bash
-# Launch
-python3 main.py
+1. **Launch**:
+   ```bash
+   python3 main.py
+   ```
+   *Note: This will initialize your default local webcam. Ensure the camera is positioned to capture the subject's environment.*
 
-# Access
-http://localhost:8001/?token=test_token
-```
+2. **Access the Dashboard**:
+   Open your browser to `http://localhost:8001/?token=test_token`.
 
-The system follows an internal observation scheduler (Tue–Sun) to manage monitoring windows automatically.
+![Dashboard Screenshot Placeholder](https://via.placeholder.com/800x450?text=Observer+Behavioral+State+Ledger+UI)
 
-Use the UI to compile a consolidated longitudinal report from accumulated episodes.
+The system follows an internal observation scheduler (Tue–Sun) to manage monitoring windows automatically. Use the UI to compile a consolidated longitudinal report from accumulated episodes.
 
 > **Roadmap:** We are currently working on a "Single-Click Installer" to remove the need for terminal commands. If you are a parent or therapist who needs this now but isn't comfortable with the setup, see the support section below.
 
