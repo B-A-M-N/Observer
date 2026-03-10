@@ -65,12 +65,14 @@ Observer tracks concrete physical data in real time to remove guesswork:
 - **Vocal Intensity** — Raw audio volume streaming, with detection of scripting and echolalia patterns
 - **Latency** — Response time to prompts and transitions, one of the most reliable regulation signals available
 
-### 2. Psychological Mapping — What Can Be Inferred
-Using lightweight Vision-Language Models (VLMs), Observer performs a "Deep Audit" of behavioral events:
+### 2. Layered Psychological Mapping — What Can Be Inferred
+Observer uses a **Cascading Vision Pipeline** to perform high-fidelity behavioral audits without stalling the CPU:
 
-- **Affective Inference** — Estimated likelihood of Joy, Distress, or Overload
-- **Regulatory Function** — Is this behavior Sensory Seeking, Sensory Avoidance, or Information Processing?
-- **Engagement Quality** — Deep Flow vs. Scattered vs. Shutdown vs. Vigilant
+- **Layer 1: Moondream (Scout Pass)** — Rapidly scans raw footage to identify visual-only triggers and interaction tags.
+- **Layer 2: Qwen3-VL (Forensic Specialist)** — Performs a deep "Forensic Audit" of isolated clips to infer:
+    - **Affective Inference** — Estimated likelihood of Joy, Distress, or Overload
+    - **Regulatory Function** — Is this behavior Sensory Seeking, Sensory Avoidance, or Information Processing?
+    - **Engagement Quality** — Deep Flow vs. Scattered vs. Shutdown vs. Vigilant
 
 ### 3. The Regulation Model
 Unlike systems optimized for performance, Observer's data model is built around the reality of neurodivergent learning cycles:
@@ -87,12 +89,12 @@ Learning is impossible without safety. Observer tracks progression through found
 
 `safety` → `familiarity` → `rapport` → `collaboration` → `attachment`
 
-### 5. Automated Forensic Editing
+### 5. Dynamic Event Windowing
 Observer records only what matters and destroys the rest:
 
 - Raw video captured only during active observation windows
-- Clips automatically trimmed to **30 seconds before and after** each detected behavioral trigger
-- **The Purge**: all raw video deleted immediately after structured annotation is saved to the local database
+- **Dynamic Context Isolation**: Clips are no longer cut at fixed intervals. The system analyzes the **Motor Velocity Curve** to automatically detect the **Onset** (trigger) and **Resolution** (return to baseline) of an event, ensuring the full "event loop" is captured with a safety buffer.
+- **The Purge**: all raw video deleted immediately after structured forensic annotation is saved to the local database
 
 ### 6. Longitudinal Synthesis
 Accumulated episodes compile into a Meta-Analysis — a living map of what helps *this specific child* stay regulated, what destabilizes them, and what restores them. Patterns invisible in any single session become clear over days and weeks.
@@ -122,6 +124,7 @@ This matters especially for neurodivergent children, who are already over-observ
 
 ```bash
 ollama pull moondream:latest
+ollama pull qwen3-vl:8b
 ollama pull rnj-1:8b-cloud
 ```
 

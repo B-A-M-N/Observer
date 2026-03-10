@@ -103,74 +103,157 @@ def start_raw_recording(reason):
         )
         print(f"[REC] STARTING ({reason}): {session_data['current_video_path']}")
 
+# --- BEHAVIORAL GOVERNANCE RULES ---
+RULES_CONFIG = {
+    "motor_onset_threshold": 1.5,      # Multiplier of baseline velocity for onset
+    "motor_resolution_threshold": 1.2, # Multiplier for resolution
+    "event_lookback_max": 25.0,        # Max seconds to look back for onset
+    "event_lookahead_max": 30.0,       # Max seconds to look ahead for resolution
+    "safety_buffer": 5.0,              # Seconds of extra context to add to clips
+    "scout_sample_rate": 10.0,         # Seconds between scout pass visual tags
+    "deep_audit_frames": 5             # Number of frames to sample for Qwen3-VL
+}
+
 async def process_video_segment(video_path, triggers, session_id, segment_type="Baseline"):
     from moviepy import VideoFileClip, concatenate_videoclips
-    trimmed_path = None
-
-    # 1. Aggregate Measured Features
+    
+    # 1. Extract Full Telemetry for Window Analysis
     motor_stats = session_data["telemetry_buffer"]
     vocal_stats = session_data["vocal_buffer"]
     attn_stats = session_data["attention_buffer"]
-
+    
+    # Reset buffers for next segment
     session_data["telemetry_buffer"] = []
     session_data["vocal_buffer"] = []
     session_data["attention_buffer"] = []
 
-    measured_features = {
-        "avg_velocity": float(np.mean([s["velocity"] for s in motor_stats])) if motor_stats else 0,
-        "max_acceleration": float(np.max([s["acceleration"] for s in motor_stats])) if motor_stats else 0,
-        "avg_volume": float(np.mean(vocal_stats)) if vocal_stats else 0,
-        "peak_volume": float(np.max(vocal_stats)) if vocal_stats else 0,
-        "avg_attention_score": float(np.mean([a["gaze_score"] for a in attn_stats])) if attn_stats else 0,
-        "trigger_count": len(triggers)
-    }
     try:
         full_clip = VideoFileClip(video_path)
-        clips_to_keep = []
+        duration = full_clip.duration
+        fps = 20 # Defined in VideoWriter
+        
+        # 2. DYNAMIC WINDOW CALCULATION
+        # Goal: Find the 'Event Loop' (Pre-onset to Post-resolution)
+        final_episodes = []
+        
+        # If no telemetry triggers, we might want to do a 'Scout Pass' with Moondream
+        # to find visual-only triggers.
         if not triggers:
-            clips_to_keep.append(full_clip.subclipped(0, 30))
-        else:
-            for t_offset, label in triggers:
-                start = max(0, t_offset - 30)
-                end = min(full_clip.duration, t_offset + 30)
-                clips_to_keep.append(full_clip.subclipped(start, end))
+            print("[SCOUT] No telemetry triggers. Running visual scout pass...")
+            # Sample every X seconds
+            for offset in range(0, int(duration), int(RULES_CONFIG["scout_sample_rate"])):
+                frame = full_clip.get_frame(offset)
+                _, buffer = cv2.imencode('.jpg', cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+                img_b64 = base64.b64encode(buffer).decode('utf-8')
+                context = await get_realtime_context(img_b64)
+                if "interaction" in context.lower() and "none" not in context.lower():
+                    triggers.append((offset, f"Visual Scout: {context}"))
 
-        if clips_to_keep:
-            final_clip = concatenate_videoclips(clips_to_keep)
-            trimmed_path = video_path.replace(".mp4", "_trimmed.mp4")
-            final_clip.write_videofile(trimmed_path, codec="libx264")
-            final_clip.close()
+        # Consolidate overlapping windows
+        windows = []
+        for t_offset, label in triggers:
+            # DATA-DRIVEN WINDOW CALCULATION
+            t_idx = int(t_offset * 30) # Assuming 30fps telemetry
+            start_search = max(0, t_idx - int(RULES_CONFIG["event_lookback_max"] * 30)) 
+            end_search = min(len(motor_stats), t_idx + int(RULES_CONFIG["event_lookahead_max"] * 30))
+            
+            # Find baseline (average of first 2s of segment if possible)
+            baseline_v = np.mean([s["velocity"] for s in motor_stats[:60]]) if len(motor_stats) > 60 else 0.5
+            
+            # Find onset: first point where velocity stays above threshold
+            onset_offset = 15 # Default
+            for i in range(t_idx, start_search, -1):
+                if i < len(motor_stats) and motor_stats[i]["velocity"] < baseline_v * RULES_CONFIG["motor_onset_threshold"]:
+                    onset_offset = t_offset - (i / 30.0)
+                    break
+            
+            # Find resolution: point where velocity returns to baseline
+            resolution_offset = 15 # Default
+            for i in range(t_idx, end_search):
+                if i < len(motor_stats) and motor_stats[i]["velocity"] < baseline_v * RULES_CONFIG["motor_resolution_threshold"]:
+                    resolution_offset = (i / 30.0) - t_offset
+                    break
+            
+            start = max(0, t_offset - onset_offset - RULES_CONFIG["safety_buffer"]) 
+            end = min(duration, t_offset + resolution_offset + RULES_CONFIG["safety_buffer"])
+            windows.append([start, end, label])
 
-            cap = cv2.VideoCapture(trimmed_path)
+        # Merge overlapping windows
+        merged_windows = []
+        if windows:
+            windows.sort()
+            curr = windows[0]
+            for i in range(1, len(windows)):
+                if windows[i][0] < curr[1] + 5: # 5s gap tolerance
+                    curr[1] = max(curr[1], windows[i][1])
+                    curr[2] += f" + {windows[i][2]}"
+                else:
+                    merged_windows.append(curr)
+                    curr = windows[i]
+            merged_windows.append(curr)
+
+        # 3. LAYERED ANALYSIS (Moondream Scouting -> Qwen3-VL Forensic)
+        for start, end, label in merged_windows:
+            print(f"[WINDOW] Isurating: {start:.1f}s to {end:.1f}s | Reason: {label}")
+            sub_clip = full_clip.subclipped(start, end)
+            
+            # Temporary path for the isolated clip
+            tmp_sub_path = video_path.replace(".mp4", f"_event_{start:.0f}.mp4")
+            sub_clip.write_videofile(tmp_sub_path, codec="libx264", audio=False)
+            
+            # Sample frames for Qwen3-VL Forensic Audit
+            cap = cv2.VideoCapture(tmp_sub_path)
             frames = []
-            while len(frames) < 12:
-                ret, frame = cap.read()
-                if not ret: break
-                _, buffer = cv2.imencode('.jpg', frame)
-                frames.append(base64.b64encode(buffer).decode('utf-8'))
-                for _ in range(30): cap.read() 
+            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            if total_frames > 0:
+                # Sample X frames for deep audit
+                num_frames = RULES_CONFIG["deep_audit_frames"]
+                for i in range(num_frames):
+                    cap.set(cv2.CAP_PROP_POS_FRAMES, int(i * (total_frames / num_frames)))
+                    ret, frame = cap.read()
+                    if ret:
+                        _, buffer = cv2.imencode('.jpg', frame)
+                        frames.append(base64.b64encode(buffer).decode('utf-8'))
             cap.release()
 
-            # 2. Inferred States from VLM
-            inferred_states = await get_video_digest(frames)
+            # LAYER 2: Qwen3-VL Deep Forensic Audit
+            inferred_states = await get_video_digest(frames, use_deep_audit=True)
+            
+            # Aggregate measured features for THIS specific window
+            start_idx = int(start * 30)
+            end_idx = int(end * 30)
+            win_motor = motor_stats[start_idx:end_idx]
+            win_vocal = vocal_stats[start_idx:end_idx]
+            
+            measured_features = {
+                "avg_velocity": float(np.mean([s["velocity"] for s in win_motor])) if win_motor else 0,
+                "max_acceleration": float(np.max([s["acceleration"] for s in win_motor])) if win_motor else 0,
+                "avg_volume": float(np.mean(win_vocal)) if win_vocal else 0,
+                "peak_volume": float(np.max(win_vocal)) if win_vocal else 0,
+                "duration_sec": end - start
+            }
 
-            # 3. Store in Behavioral Episode Ledger
+            # 4. Store in Behavioral Episode Ledger
             conn = sqlite3.connect(DB_PATH)
             cursor = conn.cursor()
             cursor.execute("""
                 INSERT INTO episodes (session_id, timestamp, trigger_type, measured_features, inferred_states)
                 VALUES (?, ?, ?, ?, ?)
-            """, (session_id, datetime.datetime.now().isoformat(), segment_type, 
+            """, (session_id, datetime.datetime.now().isoformat(), label, 
                   json.dumps(measured_features), json.dumps(inferred_states)))
             conn.commit()
             conn.close()
+            
+            if os.path.exists(tmp_sub_path): os.remove(tmp_sub_path)
 
         full_clip.close()
         if os.path.exists(video_path): os.remove(video_path)
-        if trimmed_path and os.path.exists(trimmed_path): os.remove(trimmed_path)
-        print(f"[PURGE] Cleanup complete. Episode Ledger updated.")
+        print(f"[PURGE] Cleanup complete. Layered Analysis applied.")
+        
     except Exception as e:
         print(f"[ERROR] Process failed: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 @app.get("/compile-report")

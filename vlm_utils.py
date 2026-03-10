@@ -3,19 +3,21 @@ import httpx
 import json
 
 # --- CPU-OPTIMIZED MODEL CONFIGURATION ---
-# Using Moondream for vision tasks as it is very lightweight for CPU-only systems.
+# Using Moondream for high-speed 'Scouting' and initial tagging.
 VISION_MODEL = "moondream:latest" 
+# Using Qwen3-VL for 'Forensic' deep audits on isolated clips.
+DEEP_AUDIT_MODEL = "qwen3-vl:8b"
 # Using rnj-1:8b-cloud for text-to-text synthesis and meta-analysis.
 TEXT_MODEL = "rnj-1:8b-cloud" 
 
-# TIER 1: REAL-TIME CONTEXT GUIDELINES
+# TIER 1: REAL-TIME CONTEXT GUIDELINES (Moondream)
 SYSTEM_PROMPT_REALTIME = (
     "ROLE: High-speed behavioral context monitor.\n"
     "MANDATE: Identify subject ('child' or 'adult') and prominent interaction. "
     "Output: [Subject] | [Interaction]"
 )
 
-# TIER 2: PSYCHOLOGICAL & EMOTIONAL AUDITOR
+# TIER 2: FORENSIC BEHAVIORAL AUDITOR (Qwen3-VL)
 SYSTEM_PROMPT_DEEP = """
 **ROLE:** Senior Forensic Behavioral Analyst.
 **MISSION:** Analyze high-fidelity images to infer the subject's internal emotional state and regulatory mechanics. 
@@ -45,7 +47,6 @@ SYSTEM_PROMPT_DEEP = """
 }
 """
 
-
 async def query_ollama(model, prompt, images=None, system_guideline="", timeout=120.0, format_json=False):
     """Universal query function for Ollama."""
     url = "http://localhost:11434/api/generate"
@@ -70,6 +71,9 @@ async def query_ollama(model, prompt, images=None, system_guideline="", timeout=
                 if not res_text:
                     return {"error": "AI response was empty (likely CPU/Memory timeout)"}
                 if format_json:
+                    # Clean potential markdown block formatting
+                    if res_text.startswith("```json"):
+                        res_text = res_text.replace("```json", "").replace("```", "").strip()
                     try: return json.loads(res_text)
                     except: return {"error": "JSON parse fail", "raw": res_text}
                 return res_text
@@ -87,14 +91,21 @@ async def get_realtime_context(image_b64):
     prompt = "Identify subject and interaction."
     return await query_ollama(VISION_MODEL, prompt, [image_b64], SYSTEM_PROMPT_REALTIME, timeout=15.0)
 
-async def get_video_digest(image_b64_list):
-    """Analyze a sequence of frames. Reduced frame count for CPU safety."""
-    # We take only 3 frames to avoid overwhelming CPU memory
-    step = max(1, len(image_b64_list) // 3)
-    sampled_frames = image_b64_list[::step][:3]
+async def get_video_digest(image_b64_list, use_deep_audit=False):
+    """Analyze a sequence of frames. 
+    If use_deep_audit is True, we use the heavier Qwen3-VL model for forensics.
+    Otherwise, we use Moondream for a fast pass.
+    """
+    model = DEEP_AUDIT_MODEL if use_deep_audit else VISION_MODEL
+    
+    # We take only a few frames to avoid overwhelming CPU memory
+    # 3 for Moondream, maybe 5 for Qwen3-VL if memory allows (but staying safe with 3)
+    num_frames = 3
+    step = max(1, len(image_b64_list) // num_frames)
+    sampled_frames = image_b64_list[::step][:num_frames]
     
     prompt = "Analyze this sequence. Provide a psychological digest."
-    return await query_ollama(VISION_MODEL, prompt, sampled_frames, SYSTEM_PROMPT_DEEP, timeout=180.0, format_json=True)
+    return await query_ollama(model, prompt, sampled_frames, SYSTEM_PROMPT_DEEP, timeout=300.0, format_json=True)
 
 async def get_daily_summary(episodes_list):
     """Synthesis of structured episodes into a Meta-Analysis."""
