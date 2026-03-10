@@ -105,18 +105,45 @@
 
         let ws;
         let analysisInterval;
+        let audioContext;
+        let analyser;
 
         async function initCamera() {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            video.srcObject = stream;
-            if ('webkitSpeechRecognition' in window) {
-                const recognition = new webkitSpeechRecognition();
-                recognition.continuous = true;
-                recognition.onresult = (e) => {
-                    const text = e.results[e.results.length-1][0].transcript;
-                    if (ws) ws.send(JSON.stringify({ type: 'speech', text: text }));
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                video.srcObject = stream;
+                
+                // Audio Analysis
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const source = audioContext.createMediaStreamSource(stream);
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                source.connect(analyser);
+                const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                
+                const checkVolume = () => {
+                    analyser.getByteFrequencyData(dataArray);
+                    let sum = 0;
+                    for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+                    const avg = sum / dataArray.length;
+                    if (ws && ws.readyState === WebSocket.OPEN && avg > 5) {
+                        ws.send(JSON.stringify({ type: 'audio_meta', payload: { volume: avg } }));
+                    }
+                    requestAnimationFrame(checkVolume);
                 };
-                recognition.start();
+                requestAnimationFrame(checkVolume);
+
+                if ('webkitSpeechRecognition' in window) {
+                    const recognition = new webkitSpeechRecognition();
+                    recognition.continuous = true;
+                    recognition.onresult = (e) => {
+                        const text = e.results[e.results.length-1][0].transcript;
+                        if (ws) ws.send(JSON.stringify({ type: 'speech', text: text }));
+                    };
+                    recognition.start();
+                }
+            } catch (err) {
+                appendLog("Error: " + err.message);
             }
         }
 

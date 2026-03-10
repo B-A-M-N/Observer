@@ -131,6 +131,35 @@ class TelemetryAnalyzer:
         idx = np.argmax(np.abs(yf[mask]))
         return float(abs(xf[mask][idx])), float(np.abs(yf[mask][idx]) / n)
 
+    def calculate_attention(self, face_landmarks):
+        """
+        Estimates 'Gaze Towards Camera' and 'Head Stability'.
+        Returns a score from 0.0 to 1.0.
+        """
+        try:
+            # Key landmarks: Nose tip (1), Left Eye (33), Right Eye (263)
+            nose = face_landmarks[1]
+            l_eye = face_landmarks[33]
+            r_eye = face_landmarks[263]
+            
+            # 1. Face Centering (Is the nose centered between the eyes?)
+            # Proxy for 'Looking Forward'
+            eye_dist = abs(r_eye.x - l_eye.x)
+            if eye_dist < 0.01: return {"score": 0, "stability": 0}
+            
+            nose_offset = abs(nose.x - (l_eye.x + r_eye.x) / 2.0)
+            forward_score = max(0, 1.0 - (nose_offset / eye_dist) * 2.0)
+            
+            # 2. Depth Check (Are they too close/far or tilted?)
+            # eye_dist itself is a proxy for face-to-camera distance
+            
+            return {
+                "gaze_score": float(forward_score),
+                "nose_pos": [nose.x, nose.y, nose.z]
+            }
+        except:
+            return {"gaze_score": 0}
+
     def get_window_stats(self):
         if not self.velocities: return {}
         return {

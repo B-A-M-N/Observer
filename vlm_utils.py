@@ -18,23 +18,33 @@ SYSTEM_PROMPT_REALTIME = (
 # TIER 2: PSYCHOLOGICAL & EMOTIONAL AUDITOR
 SYSTEM_PROMPT_DEEP = """
 **ROLE:** Senior Forensic Behavioral Analyst.
-**MISSION:** Analyze high-fidelity images to map emotional state and psychological regulation. 
-**STRICT CONSTRAINT:** Describe mechanics. No medical diagnoses.
+**MISSION:** Analyze high-fidelity images to infer the subject's internal emotional state and regulatory mechanics. 
+**STRICT CONSTRAINT:** Describe the *mechanics* of emotion and regulation. Output strictly in JSON format.
 
-### 🧠 PARAMETERS:
-1. **Emotional Valence:** 'Regulatory/Joyful' vs 'Dysregulation/Distress'.
-2. **Engagement:** 'Deep Flow' vs 'Hyper-vigilance'.
-3. **Function:** 'Sensory Seeking', 'Sensory Avoidance', or 'Processing'.
+### 🧠 INFERENCE TAXONOMY:
+1. **Affective Inference:** Map 'distress_likelihood', 'overload_likelihood', and 'joy_likelihood' (0.0 to 1.0).
+2. **Regulatory Interpretation:** Identify if the behavior is 'sensory_seeking', 'sensory_avoidance', or 'processing_support_needed'.
+3. **Engagement & Attention:** Characterize the flow state (e.g., Monotropism/Deep Flow, scattered, hyper-vigilant). Note gaze stability and social referencing toward others.
+4. **Contextual Narrative:** A brief synthesis of the emotional profile during the episode.
 
 ### 📤 OUTPUT FORMAT (Strict JSON):
 {
-  "emotional_profile": "Narrative of internal state",
-  "valence_score": 1-10,
-  "engagement_quality": "Deep Flow / Scattered / Vigilant",
-  "regulatory_function": "The inferred purpose of behavior",
-  "environmental_triggers": ["List", "of", "catalysts"]
+  "affective_inference": {
+    "joy_likelihood": 0.0-1.0,
+    "distress_likelihood": 0.0-1.0,
+    "overload_likelihood": 0.0-1.0
+  },
+  "regulatory_interpretation": {
+    "sensory_seeking_likelihood": 0.0-1.0,
+    "sensory_avoidance_likelihood": 0.0-1.0,
+    "processing_support_likelihood": 0.0-1.0
+  },
+  "engagement_quality": "string",
+  "emotional_profile": "string (prose narrative)",
+  "environmental_triggers": ["list", "of", "strings"]
 }
 """
+
 
 async def query_ollama(model, prompt, images=None, system_guideline="", timeout=120.0, format_json=False):
     """Universal query function for Ollama."""
@@ -86,8 +96,13 @@ async def get_video_digest(image_b64_list):
     prompt = "Analyze this sequence. Provide a psychological digest."
     return await query_ollama(VISION_MODEL, prompt, sampled_frames, SYSTEM_PROMPT_DEEP, timeout=180.0, format_json=True)
 
-async def get_daily_summary(digests_list):
-    """Synthesis of all reports using tiny text-only model."""
-    prompt = f"Synthesize these behavioral reports into a Final Daily Profile. IDENTIFY PATTERNS. REPORTS: {json.dumps(digests_list)}"
-    system_guideline = "ROLE: Senior Behavioral Meta-Analyst. Respond ONLY in JSON."
+async def get_daily_summary(episodes_list):
+    """Synthesis of structured episodes into a Meta-Analysis."""
+    prompt = f"Analyze these structured behavioral episodes from a single session. IDENTIFY PATTERNS between measured telemetry and inferred emotional states. \n\nEPISODES: {json.dumps(episodes_list)}"
+    system_guideline = (
+        "ROLE: Senior Behavioral Meta-Analyst.\n"
+        "MISSION: Synthesize concrete telemetry (velocity, volume) with inferred psychological states. "
+        "Find correlations (e.g., does high volume always correlate with inferred overload?). "
+        "Output strictly in JSON format with a 'longitudinal_patterns' key."
+    )
     return await query_ollama(TEXT_MODEL, prompt, system_guideline=system_guideline, timeout=120.0, format_json=True)

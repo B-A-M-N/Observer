@@ -31,15 +31,30 @@ DB_PATH = "/home/bamn/Observer/progeny_knowledge.db"
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("CREATE TABLE IF NOT EXISTS sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, start_time TEXT, status TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, start_time TEXT, end_time TEXT, status TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY AUTOINCREMENT, session_id INTEGER, timestamp TEXT, type TEXT, context TEXT, data TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS digests (id INTEGER PRIMARY KEY AUTOINCREMENT, session_id INTEGER, timestamp TEXT, summary TEXT, type TEXT)")
+    # New: Structured Behavioral Episode Ledger
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS episodes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_id INTEGER,
+            timestamp TEXT,
+            trigger_type TEXT,
+            measured_features TEXT,  -- Concrete telemetry (JSON)
+            inferred_states TEXT,    -- AI annotations (JSON)
+            human_notes TEXT         -- Optional corrections
+        )
+    """)
     conn.commit()
     conn.close()
 
 init_db()
-
-# MediaPipe
+# MediaPipe setup
+from mediapipe.python.solutions import pose as mp_pose
+from mediapipe.python.solutions import face_mesh as mp_face
 pose = mp_pose.Pose(static_image_mode=False, model_complexity=1, min_detection_confidence=0.5)
+face_mesh = mp_face.FaceMesh(static_image_mode=False, max_num_faces=1, refine_landmarks=True, min_detection_confidence=0.5)
 
 # SESSION STATE
 session_data = {
@@ -51,8 +66,12 @@ session_data = {
     "current_video_path": None,
     "segment_start_time": None,
     "triggers": [], 
-    "vocal_history": deque(maxlen=10)
+    "vocal_history": deque(maxlen=10),
+    "telemetry_buffer": [], # Frame-by-frame motor stats
+    "vocal_buffer": [],     # Volume levels
+    "attention_buffer": []  # Gaze/Head orientation stats
 }
+
 
 analyzer = TelemetryAnalyzer(fps=30)
 LAST_AGGREGATION_TIME = time.time()
@@ -87,6 +106,24 @@ def start_raw_recording(reason):
 async def process_video_segment(video_path, triggers, session_id, segment_type="Baseline"):
     from moviepy import VideoFileClip, concatenate_videoclips
     trimmed_path = None
+
+    # 1. Aggregate Measured Features
+    motor_stats = session_data["telemetry_buffer"]
+    vocal_stats = session_data["vocal_buffer"]
+    attn_stats = session_data["attention_buffer"]
+
+    session_data["telemetry_buffer"] = []
+    session_data["vocal_buffer"] = []
+    session_data["attention_buffer"] = []
+
+    measured_features = {
+        "avg_velocity": float(np.mean([s["velocity"] for s in motor_stats])) if motor_stats else 0,
+        "max_acceleration": float(np.max([s["acceleration"] for s in motor_stats])) if motor_stats else 0,
+        "avg_volume": float(np.mean(vocal_stats)) if vocal_stats else 0,
+        "peak_volume": float(np.max(vocal_stats)) if vocal_stats else 0,
+        "avg_attention_score": float(np.mean([a["gaze_score"] for a in attn_stats])) if attn_stats else 0,
+        "trigger_count": len(triggers)
+    }
     try:
         full_clip = VideoFileClip(video_path)
         clips_to_keep = []
@@ -97,12 +134,13 @@ async def process_video_segment(video_path, triggers, session_id, segment_type="
                 start = max(0, t_offset - 30)
                 end = min(full_clip.duration, t_offset + 30)
                 clips_to_keep.append(full_clip.subclipped(start, end))
-        
+
         if clips_to_keep:
             final_clip = concatenate_videoclips(clips_to_keep)
             trimmed_path = video_path.replace(".mp4", "_trimmed.mp4")
             final_clip.write_videofile(trimmed_path, codec="libx264")
             final_clip.close()
+
             cap = cv2.VideoCapture(trimmed_path)
             frames = []
             while len(frames) < 12:
@@ -112,41 +150,59 @@ async def process_video_segment(video_path, triggers, session_id, segment_type="
                 frames.append(base64.b64encode(buffer).decode('utf-8'))
                 for _ in range(30): cap.read() 
             cap.release()
-            digest = await get_video_digest(frames)
+
+            # 2. Inferred States from VLM
+            inferred_states = await get_video_digest(frames)
+
+            # 3. Store in Behavioral Episode Ledger
             conn = sqlite3.connect(DB_PATH)
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO digests (session_id, timestamp, summary, type) VALUES (?, ?, ?, ?)",
-                           (session_id, datetime.datetime.now().isoformat(), json.dumps(digest), segment_type))
+            cursor.execute("""
+                INSERT INTO episodes (session_id, timestamp, trigger_type, measured_features, inferred_states)
+                VALUES (?, ?, ?, ?, ?)
+            """, (session_id, datetime.datetime.now().isoformat(), segment_type, 
+                  json.dumps(measured_features), json.dumps(inferred_states)))
             conn.commit()
             conn.close()
+
         full_clip.close()
         if os.path.exists(video_path): os.remove(video_path)
         if trimmed_path and os.path.exists(trimmed_path): os.remove(trimmed_path)
-        print(f"[PURGE] cleanup done for {segment_type}")
+        print(f"[PURGE] Cleanup complete. Episode Ledger updated.")
     except Exception as e:
-        print(f"[ERROR] failed: {e}")
+        print(f"[ERROR] Process failed: {e}")
+
 
 @app.get("/compile-report")
 async def compile_report():
-    """Manual compile: synthesizes all accumulated digests."""
+    """Manual compile: synthesizes all accumulated structured episodes."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("SELECT timestamp, summary, type FROM digests ORDER BY timestamp DESC")
+    cursor.execute("SELECT timestamp, trigger_type, measured_features, inferred_states FROM episodes ORDER BY timestamp DESC")
     rows = cursor.fetchall()
     conn.close()
     
-    if not rows: return JSONResponse(content={"error": "No reports accumulated yet."})
+    if not rows: return JSONResponse(content={"error": "No behavioral episodes accumulated yet."})
     
-    digests = [json.loads(r[1]) for r in rows]
-    final_summary = await get_daily_summary(digests)
+    episodes = []
+    for r in rows:
+        episodes.append({
+            "time": r[0],
+            "trigger": r[1],
+            "measured": json.loads(r[2]),
+            "inferred": json.loads(r[3])
+        })
+    
+    # Meta-Analysis across all structured episodes
+    final_summary = await get_daily_summary(episodes)
     
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")
-    report_path = os.path.join(PROFILE_DIR, f"Comprehensive_Report_{timestamp}.json")
+    report_path = os.path.join(PROFILE_DIR, f"Longitudinal_Report_{timestamp}.json")
     
     report_data = {
         "generated_at": datetime.datetime.now().isoformat(),
         "meta_analysis": final_summary,
-        "individual_segments": [{"time": r[0], "type": r[2], "content": json.loads(r[1])} for r in rows]
+        "structured_episodes": episodes
     }
     
     with open(report_path, "w") as f:
@@ -205,9 +261,21 @@ async def websocket_endpoint(websocket: WebSocket, token: str = None):
                             resized = cv2.resize(frame, (640, 480))
                             session_data["video_writer"].write(resized)
                         if is_child:
-                            pose_res = pose.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                            # Pose
+                            pose_res = pose.process(rgb_frame)
                             if pose_res.pose_landmarks:
-                                analyzer.update(pose_res.pose_landmarks.landmark)
+                                stats = analyzer.update(pose_res.pose_landmarks.landmark)
+                                if session_data["is_recording"]:
+                                    session_data["telemetry_buffer"].append(stats)
+                            
+                            # Attention (Face Mesh)
+                            face_res = face_mesh.process(rgb_frame)
+                            if face_res.multi_face_landmarks:
+                                attn = analyzer.calculate_attention(face_res.multi_face_landmarks[0].landmark)
+                                if session_data["is_recording"]:
+                                    session_data["attention_buffer"].append(attn)
+
                             if now_unix - LAST_AGGREGATION_TIME >= 1.0:
                                 _, amp = analyzer.analyze_frequency()
                                 if amp > 0.04:
@@ -232,6 +300,11 @@ async def websocket_endpoint(websocket: WebSocket, token: str = None):
                         offset = time.time() - session_data["segment_start_time"]
                         session_data["triggers"].append((offset, f"Echolalia: {text}"))
                     session_data["vocal_history"].append(text)
+
+            elif message["type"] == "audio_meta":
+                volume = message["payload"]["volume"]
+                if is_active and session_data["is_recording"]:
+                    session_data["vocal_buffer"].append(volume)
 
     except WebSocketDisconnect:
         if session_data["video_writer"]: session_data["video_writer"].release()

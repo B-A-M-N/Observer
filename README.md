@@ -61,6 +61,7 @@ Longitudinal map update
 Observer tracks concrete physical data in real time to remove guesswork:
 
 - **Motor Rhythm** — MediaPipe Pose tracking distinguishes purposeful movement from repetitive regulatory patterns (stimming)
+- **Attention Tracking** — MediaPipe Face Mesh analyzes head orientation and gaze stability to estimate focus and social referencing
 - **Vocal Intensity** — Raw audio volume streaming, with detection of scripting and echolalia patterns
 - **Latency** — Response time to prompts and transitions, one of the most reliable regulation signals available
 
@@ -69,7 +70,7 @@ Using lightweight Vision-Language Models (VLMs), Observer performs a "Deep Audit
 
 - **Affective Inference** — Estimated likelihood of Joy, Distress, or Overload
 - **Regulatory Function** — Is this behavior Sensory Seeking, Sensory Avoidance, or Information Processing?
-- **Engagement Quality** — Deep Flow vs. Scattered vs. Shutdown
+- **Engagement Quality** — Deep Flow vs. Scattered vs. Shutdown vs. Vigilant
 
 ### 3. The Regulation Model
 Unlike systems optimized for performance, Observer's data model is built around the reality of neurodivergent learning cycles:
