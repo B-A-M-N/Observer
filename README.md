@@ -122,7 +122,7 @@ This matters especially for neurodivergent children, who are already over-observ
 
 ```bash
 ollama pull moondream:latest
-ollama pull qwen2.5:0.5b
+ollama pull rnj-1:8b-cloud
 ```
 
 Both are CPU-optimized. This runs on normal hardware. No cloud required.

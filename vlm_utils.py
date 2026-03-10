@@ -5,8 +5,8 @@ import json
 # --- CPU-OPTIMIZED MODEL CONFIGURATION ---
 # Using Moondream for vision tasks as it is very lightweight for CPU-only systems.
 VISION_MODEL = "moondream:latest" 
-# Using Qwen2.5 0.5b for text-to-text synthesis (fastest on CPU).
-TEXT_MODEL = "qwen2.5:0.5b" 
+# Using rnj-1:8b-cloud for text-to-text synthesis and meta-analysis.
+TEXT_MODEL = "rnj-1:8b-cloud" 
 
 # TIER 1: REAL-TIME CONTEXT GUIDELINES
 SYSTEM_PROMPT_REALTIME = (
