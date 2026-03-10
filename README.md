@@ -115,6 +115,8 @@ This matters especially for neurodivergent children, who are already over-observ
 
 ## Getting Started
 
+> **New to AI or Code?** Start here: [Beginner's Step-by-Step Setup Guide](BEGINNERS_GUIDE.md)
+
 ### Prerequisites
 
 - Python 3.10+
