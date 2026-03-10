@@ -65,14 +65,14 @@ Observer tracks concrete physical data in real time to remove guesswork:
 - **Vocal Intensity** — Raw audio volume streaming, with detection of scripting and echolalia patterns
 - **Latency** — Response time to prompts and transitions, one of the most reliable regulation signals available
 
-### 2. Layered Psychological Mapping — What Can Be Inferred
-Observer uses a **Cascading Vision Pipeline** to perform high-fidelity behavioral audits without stalling the CPU:
+### 2. Scouting & Forensic Deep Audits — What Can Be Inferred
+To understand the *why* behind a behavior, Observer uses a **Cascading Vision Pipeline**. Think of this as a "Scout" and a "Specialist" working together:
 
-- **Layer 1: Moondream (Scout Pass)** — Rapidly scans raw footage to identify visual-only triggers and interaction tags.
-- **Layer 2: Qwen3-VL (Forensic Specialist)** — Performs a deep "Forensic Audit" of isolated clips to infer:
-    - **Affective Inference** — Estimated likelihood of Joy, Distress, or Overload
+- **The Scout (Moondream)**: Rapidly scans raw footage to identify simple visual cues—like a specific interaction or a child entering the frame—tagging events that telemetry might miss.
+- **The Specialist (Qwen3-VL)**: Once a significant event is isolated, this high-fidelity model performs a "Forensic Audit" on the specific clip to infer deep emotional mechanics:
+    - **Affective Inference** — Estimated likelihood of Joy, Distress, or Overload.
     - **Regulatory Function** — Is this behavior Sensory Seeking, Sensory Avoidance, or Information Processing?
-    - **Engagement Quality** — Deep Flow vs. Scattered vs. Shutdown vs. Vigilant
+    - **Engagement Quality** — Is the child in a state of Deep Flow, or are they scattered, shutdown, or hyper-vigilant?
 
 ### 3. The Regulation Model
 Unlike systems optimized for performance, Observer's data model is built around the reality of neurodivergent learning cycles:
@@ -90,11 +90,9 @@ Learning is impossible without safety. Observer tracks progression through found
 `safety` → `familiarity` → `rapport` → `collaboration` → `attachment`
 
 ### 5. Dynamic Event Windowing
-Observer records only what matters and destroys the rest:
+Observer records only what matters and destroys the rest. We don't just cut clips at random; we use the **Motor Velocity Curve** to automatically detect the **Onset** of a behavioral loop and its **Resolution**. This ensures we capture the full context of a meltdown or a breakthrough without keeping a single second of unnecessary footage.
 
-- Raw video captured only during active observation windows
-- **Dynamic Context Isolation**: Clips are no longer cut at fixed intervals. The system analyzes the **Motor Velocity Curve** to automatically detect the **Onset** (trigger) and **Resolution** (return to baseline) of an event, ensuring the full "event loop" is captured with a safety buffer.
-- **The Purge**: all raw video deleted immediately after structured forensic annotation is saved to the local database
+**The Purge**: All raw video is deleted immediately after the structured forensic annotation is saved. The only thing that survives is the insight.
 
 ### 6. Longitudinal Synthesis
 Accumulated episodes compile into a Meta-Analysis — a living map of what helps *this specific child* stay regulated, what destabilizes them, and what restores them. Patterns invisible in any single session become clear over days and weeks.
@@ -143,6 +141,21 @@ http://localhost:8001/?token=test_token
 The system follows an internal observation scheduler (Tue–Sun) to manage monitoring windows automatically.
 
 Use the UI to compile a consolidated longitudinal report from accumulated episodes.
+
+> **Roadmap:** We are currently working on a "Single-Click Installer" to remove the need for terminal commands. If you are a parent or therapist who needs this now but isn't comfortable with the setup, see the support section below.
+
+---
+
+## Specialist Support & Implementation
+
+If you are a family, therapist, or educator who needs this tool but doesn't have the technical background to set it up, I offer specialized implementation support. 
+
+As the developer and a parent using this daily, I can help with:
+- Custom hardware selection and local setup.
+- Tuning the behavioral thresholds for a specific child's profile.
+- Integrating the Behavioral Ledger into existing therapy or IEP goals.
+
+**[Contact Me](mailto:bamn@example.com)** to discuss a tailored implementation for your home or practice. 
 
 ---
 
