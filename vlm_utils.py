@@ -7,8 +7,9 @@ import json
 VISION_MODEL = "moondream:latest" 
 # Using Qwen3-VL for 'Forensic' deep audits on isolated clips.
 DEEP_AUDIT_MODEL = "qwen3-vl:8b"
-# Using rnj-1:8b-cloud for text-to-text synthesis and meta-analysis.
-TEXT_MODEL = "rnj-1:8b-cloud" 
+# Using rnj-1:8b for 100% local text-to-text synthesis and meta-analysis.
+# (Users with lower-end CPUs can swap this for 'rnj-1:8b-cloud' for faster reports).
+TEXT_MODEL = "rnj-1:8b" 
 
 # TIER 1: REAL-TIME CONTEXT GUIDELINES (Moondream)
 SYSTEM_PROMPT_REALTIME = (

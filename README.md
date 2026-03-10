@@ -121,15 +121,21 @@ This matters especially for neurodivergent children, who are already over-observ
 ### Models
 
 ```bash
-# Local Vision Models (100% Private)
+# High-Speed Local Vision
 ollama pull moondream:latest
+
+# Forensic Deep Audit (Local)
 ollama pull qwen3-vl:8b
 
-# Meta-Analysis Model (Cloud-Assisted)
-ollama pull rnj-1:8b-cloud
+# Meta-Analysis & Pattern Recognition (Local)
+ollama pull rnj-1:8b
 ```
 
-**Note on Privacy:** While the Vision models (`moondream`, `qwen3-vl`) run entirely on your local CPU, the `rnj-1:8b-cloud` model utilizes Ollama's cloud inference. If your use case requires a **100% air-gapped system**, you can swap the text model to a local one (like `llama3:8b`) in `vlm_utils.py`.
+#### ☁️ A Cheap/Free Alternative (Ollama Cloud)
+If you are running on a very low-end computer and find that report generation is too slow, you can use the cloud-assisted version of the text model.
+1.  **Pull the cloud model**: `ollama pull rnj-1:8b-cloud`
+2.  **Update the code**: Open `vlm_utils.py` and change `TEXT_MODEL = "rnj-1:8b"` to `TEXT_MODEL = "rnj-1:8b-cloud"`.
+3.  **Privacy Note**: Ollama has stated they do not log any data sent to their cloud models. This is a cheap way to get high-end performance on older hardware, but use your own discretion regarding your family's privacy needs.
 
 ### Quick Start
 
@@ -164,11 +170,11 @@ As the developer and a parent using this daily, I can help with:
 
 ## Privacy Stance
 
-Observer is **local-first by design**. 
+Observer is **local-first by default**. 
 
 1. **Vision is Local**: All video analysis (the most sensitive data) happens on your machine. No raw video ever leaves your hardware.
 2. **The Purge**: Raw video is destroyed immediately after analysis.
-3. **Cloud Transparency**: We currently use `rnj-1:8b-cloud` for the final text-based meta-analysis to keep the system responsive on lower-end CPUs. While Ollama states they do not log these requests, users requiring absolute local sovereignty should switch to a local text model (like `llama3:8b`) as described in the Models section.
+3. **Local Sovereignty**: By default, even the text-based meta-analysis happens on your local CPU. Your data never leaves your home unless you specifically choose to use the cloud-assisted model for faster performance.
 
 The goal is a tool that families can trust with their most vulnerable moments — and that means building it as if surveillance is the enemy, not the product.
 
