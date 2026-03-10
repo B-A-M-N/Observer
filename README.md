@@ -13,9 +13,52 @@ Most educational tools focus on *performance* (did they get the answer right?). 
 
 Observer was built to bridge this gap by converting raw lived behavior into a structured "Behavioral State Ledger" that can eventually inform better teaching strategies.
 
-## How it Works
+---
 
-Observer acts as a high-fidelity "nervous system" that monitors and documents behavioral episodes without sacrificing privacy.
+## Core System Loop
+
+Observer acts as the "sensory nervous system" that feeds into a larger developmental loop:
+
+```
+Interaction / Observation
+        ↓
+Signals collected
+(latency, motor patterns, volume shift, repetition)
+        ↓
+State estimation
+(regulation + engagement + comprehension)
+        ↓
+Intervention Selection
+(explore / practice / stabilize / recover)
+        ↓
+Contextual Synthesis
+(environmental triggers + emotional valence)
+        ↓
+Longitudinal Map Update
+```
+
+---
+
+## Architectural Philosophy
+
+### The Regulation Model
+Unlike systems that optimize for performance, Observer's data model optimizes for **regulation, persistence, and recovery**. This captures the reality of neurodivergent learning cycles:
+- `explore` / `engage` / `advance`
+- `practice` / `stabilize`
+- `repair` / `recover` / `rest`
+- `co_play`
+
+### Trust Stages
+Learning is impossible without safety. The system is designed to track progression through these foundational trust stages:
+1. `safety`
+2. `familiarity`
+3. `rapport`
+4. `collaboration`
+5. `attachment`
+
+---
+
+## How it Works
 
 ### 1. Hard Telemetry (Measured Features)
 The system tracks concrete physical data in real-time to remove guesswork:
